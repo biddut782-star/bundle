@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bundle Card Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<style>
+:root{--ink:#0f1f3d;--paper:#eef2f9;--card:#fff;--line:#dbe3f0;--muted:#5f6f8c;--chalk:#f5c542;--blue:#3366e6;--warn:#b4411f;--ok:#17805a;--soft:#f5f8fd;--sh:0 1px 2px rgba(16,33,63,.06),0 8px 24px rgba(16,33,63,.07)}
+@media (prefers-color-scheme:dark){:root{--ink:#e8eefc;--paper:#0a1222;--card:#121d35;--line:#27385a;--muted:#9db0d3;--blue:#7aa6ff;--warn:#ff9a78;--ok:#6fd49c;--soft:#0e1830;--sh:0 8px 24px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 400px at 80% -100px,rgba(51,102,230,.12),transparent),var(--paper);color:var(--ink);font:400 16px/1.55 "Barlow",system-ui,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.num{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700}
+header{position:sticky;top:0;z-index:50;transition:padding .2s;box-shadow:0 4px 18px rgba(10,20,45,.25);background:linear-gradient(120deg,#0b1730 0%,#14306b 60%,#1f4aa8 100%);color:#fff;padding:26px 28px 0;overflow:hidden}
+header::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.09) 1.2px,transparent 1.3px);background-size:18px 18px;pointer-events:none}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--chalk),#ffe08a 50%,var(--chalk))}
+header>*{position:relative}
+header h1{margin:0;font-size:clamp(24px,4vw,34px);line-height:1.15;letter-spacing:.01em}
+header h1 small{display:block;margin-top:4px;font:500 14px "Barlow";letter-spacing:.14em;text-transform:uppercase;color:#aebfe6}
+.cr{position:absolute;top:20px;right:28px;text-align:left;font-size:13px;line-height:1.55;color:#c7d4f1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 14px;backdrop-filter:blur(4px)}
+.cr b{display:block;color:var(--chalk);font-size:14px;letter-spacing:.02em}
+.cr a{color:#fff;text-decoration:none}.cr a:hover{text-decoration:underline}
+@media (max-width:900px){.cr{position:static;display:inline-block;margin:12px 0 4px}}
+nav{display:flex;gap:6px;overflow-x:auto;margin-top:22px}
+nav button{font:600 15px "Barlow";color:#b8c6e6;background:rgba(255,255,255,.06);border:0;padding:10px 22px;cursor:pointer;border-radius:12px 12px 0 0;white-space:nowrap;transition:background .15s}
+nav button:hover{background:rgba(255,255,255,.14);color:#fff}
+nav button[aria-selected=true]{background:var(--paper);color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:26px 20px}
+.panel{display:none}.panel.on{display:block;animation:in .25s ease}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:18px;box-shadow:var(--sh)}
+h2{display:flex;align-items:center;gap:10px;font-size:18px;margin:0 0 14px}
+h2::before{content:"";width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--blue),var(--chalk))}
+.f{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+label{display:block;font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--muted)}
+input,select,textarea{width:100%;margin-top:4px;font:400 15px "Barlow";color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px 12px;transition:border-color .15s,box-shadow .15s}
+input:hover,select:hover,textarea:hover{border-color:var(--blue)}
+:focus-visible{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(51,102,230,.25)}
+textarea{min-height:130px;resize:vertical}
+button.b{font:600 14px "Barlow";border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:7px 18px;cursor:pointer;transition:transform .1s,box-shadow .15s}
+button.b:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+button.p{background:linear-gradient(135deg,#ffd45e,var(--chalk));color:#10213f;border-color:transparent;font-size:15px;padding:9px 24px;box-shadow:0 4px 14px rgba(245,197,66,.4)}
+table{width:100%;border-collapse:separate;border-spacing:0 6px}th,td{padding:2px 6px;text-align:left}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num{color:var(--blue);font-size:20px}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+.stat>div{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.stat b{font-size:36px;line-height:1.1;color:var(--blue)}.stat small{color:var(--muted)}
+.msg{font-weight:700;margin:0 0 14px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--warn)}
+.msg::before{content:"●";margin-right:6px;font-size:12px}
+.opts{display:flex;flex-wrap:wrap;gap:14px;align-items:end}.opts>div{width:150px}
+.opts .chk{width:auto;display:flex;gap:8px;align-items:center;color:var(--ink);font-size:15px;margin-bottom:8px}.opts .chk input{width:auto;margin:0}
+.sheet-info{color:var(--muted);font-weight:600}
+.pg{display:grid;gap:6mm;padding:0;break-after:page}
+.card{position:relative;background:#fff;color:#000;border:1px solid #9fb0d0;border-left:6px solid #10213f;border-radius:8px;padding:3mm 4mm;font-size:13px;line-height:1.35;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;box-shadow:0 2px 8px rgba(16,33,63,.08)}
+.card .r{display:flex;justify-content:space-between;gap:8px}
+.card .n{font-size:30px;line-height:1}
+.card .sz{font-size:24px;color:#2455c9}
+.card .h{font-weight:700;border-bottom:1px dashed #8a99b8;padding-bottom:2px}
+.card svg.bc{max-width:100%;height:36px}
+footer{max-width:1100px;margin:0 auto;padding:10px 20px 32px;color:var(--muted);font-size:14px;text-align:center}footer a{color:var(--blue);text-decoration:none}
+ .warnl{margin:0 0 14px;padding:10px 14px 10px 30px;background:rgba(180,65,31,.1);border:1px solid var(--warn);border-radius:10px;color:var(--warn);font-weight:600}
+.sumt{width:100%;border-collapse:collapse}.sumt th,.sumt td{padding:6px 10px;border-bottom:1px solid var(--line)}.sumt .tot td{font-weight:700;border-top:2px solid var(--ink)}
+.sumpage{display:block!important;padding:8mm;background:#fff;color:#000;--line:#c9d3e2;--muted:#444;--ink:#000}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{font:600 14px "Barlow";border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:99px;padding:5px 14px}
+button.chip{cursor:pointer;padding:6px 16px}.chip small{color:var(--muted);font-weight:400}.chip[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#fff}.chip[aria-pressed=true] small{color:#dbe6ff}
+.full{color:var(--ok)}.neg{color:var(--warn)}
+.wide{overflow-x:auto}.wide input,.wide select{margin:0;padding:5px 8px;min-width:80px}
+.hint{color:var(--muted);font-size:14px}
+.codes{display:flex;gap:6px;align-items:center}.codes svg.bc{flex:1;min-width:0}header.mini{padding-top:8px}header.mini h1{font-size:18px}header.mini h1 small,header.mini .cr{display:none}header.mini nav{margin-top:8px}
+@media print{@page{size:A4;margin:8mm}body{background:#fff}header,nav,.panel:not(#out),.noprint,.sheet-info{display:none!important}main{padding:0;max-width:none}.pg{height:281mm;margin:0;gap:5mm}.box{border:0;padding:0;box-shadow:none;background:none}.card{box-shadow:none}}
+</style><style id="pgs"></style></head>
+<body>
+<header><div class="cr"><b>👩‍💻 MAHI UDDIN, SR. MIS, RG</b>📧 <a href="mailto:biddut782@gmail.com">biddut782@gmail.com</a><br>📲 <a href="tel:01925742966">01925742966</a><br>🌐 <a href="https://mahi-uddin.vercel.app">mahi-uddin.vercel.app</a></div>
+<h1>Bundle Card Generator<small>Library &middot; Input &middot; Print</small></h1>
+<nav role="tablist"><button role="tab" data-t="lib" aria-selected="false">1. Library</button><button role="tab" data-t="inp" aria-selected="true">2. Input</button><button role="tab" data-t="layp" aria-selected="false">3. Lay &amp; Roll</button><button role="tab" data-t="out" aria-selected="false">4. Output &amp; Print</button></nav></header>
+<main>
+<div class="panel" id="lib"><div class="box"><h2>Library (one item per line)</h2>
+<div class="f" id="libf"></div><p><button class="b p" id="savelib">Save library</button> <button class="b" id="reslib">Reset to default</button> <span id="libmsg" class="msg ok"></span></p></div></div>
+
+<div class="panel on" id="inp">
+<div class="box"><h2>Saved jobs</h2><div class="opts"><div style="width:230px"><label>Job name<input id="jname" placeholder="e.g. LCW 2401025 Navy"></label></div><button class="b p" id="jsave">Save job</button><div style="width:230px"><label>Saved jobs<select id="jobs"></select></label></div><button class="b" id="jload">Load</button><button class="b" id="jdel">Delete</button></div></div>
+<div class="box"><h2>Order details</h2><div class="f" id="head"></div></div>
+<div class="box"><h2>Colour sets</h2><div class="chips" id="setbar"></div><div class="f" id="shead" style="margin-top:14px"></div></div>
+<div class="box"><h2>Lays (plies)</h2><label>Plies per lay, comma separated<input id="lays" value="10,11,8,8"></label></div>
+<div class="box"><h2>Sizes &amp; ratio</h2><table id="st"></table><p><button class="b" id="addsz">+ Add size</button></p></div>
+<div class="box"><div class="stat" id="stat"></div><p class="msg" id="chk"></p><div id="warn"></div><button class="b p" id="gen">Generate bundles</button></div></div>
+
+<div class="panel" id="layp"><div class="box"><h2>Colour set</h2><div class="chips" id="setbar2"></div></div>
+<div class="box"><h2>Lay &amp; roll log</h2><div class="stat" id="laysum"></div><div class="wide"><table id="laytbl"></table></div>
+<p class="hint">Planned plies come from the Input tab. Leave "Actual plies" blank to use the plan. Fabric used = actual plies × marker length; balance = issued − used.</p></div></div>
+<div class="panel" id="out"><div class="box noprint"><h2>Print options</h2><div class="opts">
+<div><label>Cards per page<select id="pp"><option>8</option><option>6</option><option>4</option><option>12</option></select></label></div>
+<div><label>Size<select id="fs"><option value="">All</option></select></label></div>
+<div><label>Colour<select id="fc"><option value="">All colours</option></select></label></div>
+<div><label>Layout<select id="lo"><option value="a4">A4 cards</option><option value="st">Sticker 100×60 mm</option></select></label></div>
+<div style="width:200px"><label>Bundle list / range<input id="rl" placeholder="e.g. 1-8, 12, 20-24"></label></div>
+<label class="chk"><input type="checkbox" id="sp"> Summary page</label>
+<button class="b" id="csv">Export CSV</button><button class="b" id="cp">Copy list</button>
+<label class="chk"><input type="checkbox" id="rj"> Reject barcode</label>
+<button class="b p" id="pr">Print</button></div></div>
+<div class="box noprint" id="sum"></div><p class="sheet-info msg" id="info"></p><div id="sheets"></div></div>
+</main>
+<footer class="noprint">👩‍💻 MAHI UDDIN, SR. MIS, RG &middot; 📧 <a href="mailto:biddut782@gmail.com">biddut782@gmail.com</a> &middot; 📲 <a href="tel:01925742966">01925742966</a> &middot; 🌐 <a href="https://mahi-uddin.vercel.app">mahi-uddin.vercel.app</a></footer>
+<script>
+const clone=o=>JSON.parse(JSON.stringify(o));
+const DEF={buyer:["NY","TK","ZARA","KIK","Lefties","Cubus","Stra V","ASIA","LC WAIKIKI"],
+print:["Solid","Print","HIT-SEL","Embroidery","WASH","Print/EMB","Print/Wash","Wash/EMB"],
+style:["T-Shirt","L Slv Tee","S Slv Tee","Polo","Tank Top","Ladies Tee","Leggings","Brief","Boxer","Short Pant","Bolero"],
+part:["FRONT","BACK","SLV","NECK","Back Part","Front Part","Sleeves","F+S","B+S","B+F+S","Bottom+Slv","Moon","B+F","B+F+S+Plkt","Slv+Plkt","F+Slv+Plkt","Slv+Plkt+Moon"],
+unit:["RENAISSANCE","SOUTHERN GARMENTS LTD."],
+colour:["NAVY/407","Black","White","Fuchsia","Melange Grey","Stone","Moonless Light","Palace Blue","Sweet Lilac","Patina Green","Lt. Grey Melange","Regatta","Marine Green","Platin","Lunar rock","Omphalodes","Orchid Bloom","True Navy","Kelly Green","Ribbon Red","YellowWhite"],
+ral:["2401025/DALASA","55-51247","55-51241","621059","619690","619689","619698","619696","621063","619688","619687","S342500","1342500","621062","55-51289","55-51291","70769","619693","0812131","1375802","S375802"],
+size:["XS","S","M","L","XL","2XL","3XL","4XL","5XL"]};
+const LBL={buyer:"Buyer",print:"Print / Solid",style:"Style",part:"Part",unit:"Unit",colour:"Colour",ral:"RAL / Order",size:"Size name"};
+let lib=clone(DEF);
+try{const s=localStorage.getItem("bcLib");if(s)lib=Object.assign(lib,JSON.parse(s))}catch(e){}
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),pad=(x,l)=>String(x).padStart(l,"0");
+const SUF="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b));document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id===b.dataset.t));if(b.dataset.t==="layp")drawLay()});
+function show(t){document.querySelector(`nav [data-t=${t}]`).click()}
+// ---------- state ----------
+const ORD=["buyer","ral","style","print","unit","max","pre"];
+const V={buyer:"LC WAIKIKI",ral:"2401025/DALASA",style:"S Slv Tee",print:"Embroidery",unit:"RENAISSANCE",max:"186",pre:"ABC"};
+const defSZ=()=>[["S","A",1],["M","B",1],["M","C",1],["L","D",1],["L","E",1],["XL","F",1],["3XL","G",1],["3XL","H",1],["4XL","I",1],["5XL","J",1],["5XL","K",1]];
+const mkSet=o=>Object.assign({colour:"NAVY/407",cut:"16",batch:"3018",part:"FRONT",lays:"10,11,8,8",SZ:defSZ(),log:[]},o);
+let SETS=[mkSet()],AS=0,SZ=SETS[0].SZ;const S=()=>SETS[AS];
+["colour","cut","batch","part"].forEach(k=>Object.defineProperty(V,k,{get:()=>S()[k],set:v=>{S()[k]=v}}));
+const snap=()=>({O:Object.fromEntries(ORD.map(k=>[k,V[k]])),SETS,AS});
+function restore(j){if(j.V)j={O:j.V,SETS:[{colour:j.V.colour,cut:j.V.cut,batch:j.V.batch,part:j.V.part,lays:j.lays,SZ:j.SZ}],AS:0};ORD.forEach(k=>{if(j.O[k]!=null)V[k]=j.O[k]});SETS=j.SETS.map(mkSet);AS=Math.min(j.AS||0,SETS.length-1);SZ=S().SZ}
+const putWork=()=>{try{localStorage.setItem("bcWork",JSON.stringify(snap()))}catch(e){}};
+try{const w=localStorage.getItem("bcWork");if(w)restore(JSON.parse(w))}catch(e){}
+// ---------- library ----------
+function drawLib(){$("libf").innerHTML=Object.keys(LBL).map(k=>`<label>${LBL[k]}<textarea data-k="${k}">${esc(lib[k].join("\n"))}</textarea></label>`).join("")}
+$("savelib").onclick=()=>{document.querySelectorAll("#libf textarea").forEach(t=>lib[t.dataset.k]=t.value.split("\n").map(x=>x.trim()).filter(Boolean));try{localStorage.setItem("bcLib",JSON.stringify(lib))}catch(e){}drawLib();drawHead();drawSizes();$("libmsg").textContent="Saved"};
+$("reslib").onclick=()=>{lib=clone(DEF);try{localStorage.removeItem("bcLib")}catch(e){}drawLib();drawHead();drawSizes()};
+// ---------- input ----------
+function sel(k,l){const L=lib[k].includes(V[k])?lib[k]:[V[k],...lib[k]];return `<label>${l}<select data-v="${k}">${L.map(o=>`<option ${o===V[k]?"selected":""}>${esc(o)}</option>`).join("")}</select></label>`}
+const inp=(k,l,dl)=>`<label>${l}<input data-v="${k}" value="${esc(V[k])}" ${dl?`list="dl-${dl}"`:""}></label>`;
+const dlist=k=>`<datalist id="dl-${k}">${lib[k].map(o=>`<option value="${esc(o)}">`).join("")}</datalist>`;
+function drawHead(){$("head").innerHTML=sel("buyer","Buyer")+inp("ral","RAL / Order No.","ral")+sel("style","Style")+sel("print","Print / Solid")+sel("unit","Unit")+inp("max","Max Qty / Bundle")+inp("pre","Barcode prefix")+dlist("ral");
+ $("shead").innerHTML=inp("colour","Colour","colour")+inp("cut","Cutting No.")+inp("batch","Batch No.")+sel("part","Part")+dlist("colour");$("lays").value=S().lays}
+["head","shead"].forEach(i=>$(i).oninput=e=>{const k=e.target.dataset.v;if(k){V[k]=e.target.value;calc();if(k==="colour"||k==="cut")drawSets()}});
+function drawSets(){const h=SETS.map((s,i)=>`<button class="chip" aria-pressed="${i===AS}" data-s="${i}">${esc(s.colour||"?")} <small>Cut ${esc(s.cut)}</small></button>`).join("")+`<button class="b" data-sa="add">+ Add colour</button>`+(SETS.length>1?`<button class="b" data-sa="del">Remove</button>`:"");$("setbar").innerHTML=h;$("setbar2").innerHTML=h}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-s],[data-sa]");if(!t)return;
+ if(t.dataset.sa==="add"){const c=S();SETS.push(mkSet({colour:"NEW COLOUR",cut:String(Math.max(...SETS.map(s=>+s.cut||0))+1),batch:c.batch,part:c.part,lays:c.lays,SZ:clone(c.SZ)}));AS=SETS.length-1}
+ else if(t.dataset.sa==="del"){SETS.splice(AS,1);AS=Math.max(0,AS-1)}else AS=+t.dataset.s;
+ SZ=S().SZ;drawHead();drawSizes();drawSets();drawLay()});
+function drawSizes(){$("st").innerHTML="<tr><th>#</th><th>Size</th><th>Suffix</th><th>Ratio</th><th></th></tr>"+SZ.map((s,i)=>`<tr><td class="num">${i+1}</td><td><select data-i="${i}" data-f="0">${lib.size.map(o=>`<option ${o===s[0]?"selected":""}>${esc(o)}</option>`).join("")}</select></td><td><select data-i="${i}" data-f="1">${SUF.map(o=>`<option ${o===s[1]?"selected":""}>${o}</option>`).join("")}</select></td><td><input type="number" min="1" data-i="${i}" data-f="2" value="${s[2]}"></td><td><button class="b" data-d="${i}" aria-label="Remove">✕</button></td></tr>`).join("");calc()}
+$("st").onchange=$("st").oninput=e=>{const d=e.target.dataset;if(d.f){SZ[d.i][d.f]=d.f==="2"?Math.max(1,+e.target.value||1):e.target.value;calc()}};
+$("st").onclick=e=>{const d=e.target.dataset.d;if(d!==undefined){SZ.splice(+d,1);drawSizes()}};
+$("addsz").onclick=()=>{SZ.push([lib.size[0],SUF[SZ.length]||"A",1]);drawSizes()};
+$("lays").oninput=()=>{S().lays=$("lays").value;calc();drawLay()};
+const parseLays=t=>String(t).split(/[,\s]+/).map(Number).filter(n=>n>0);
+// formula: K splits by max qty, serial restarts per size, bundle no continuous per cutting
+function buildSet(s,si){const L=parseLays(s.lays),mx=+V.max||186,out=[];let n=0;
+ s.SZ.forEach(([sz,sf,ra])=>{let ser=0;L.forEach((ply,li)=>{const I=ply*ra,K=I>2*mx?3:I>mx?2:1,base=Math.floor(ply/K);
+  for(let k=0;k<K;k++){const p=k===K-1?ply-base*(K-1):base;n++;out.push({n,sz,sf,q:p*ra,a:ser+1,b:ser+p,si,lay:li+1,colour:s.colour,cut:s.cut,batch:s.batch,part:s.part});ser+=p}})});return out}
+const buildAll=()=>SETS.flatMap((s,i)=>buildSet(s,i));
+const code=b=>V.pre+b.cut+V.style+pad(b.n,3)+pad(b.q,2),rcode=b=>V.pre+b.cut+V.style+pad(b.n,3)+"R";
+const tile=(v,l)=>`<div><b class="num">${v}</b><br><small>${l}</small></div>`;
+function calc(){const s=S(),L=parseLays(s.lays),t=L.reduce((a,b)=>a+b,0),r=SZ.reduce((a,x)=>a+x[2],0),mx=+V.max||186,all=buildAll();
+ $("stat").innerHTML=tile(t*r,"Cutting qty (this colour)")+tile(L.length?buildSet(s,AS).length:0,"Bundles")+tile(t,"Total plies")+tile(r,"Marker pieces")+(SETS.length>1?tile(all.reduce((a,b)=>a+b.q,0),`Order total · ${SETS.length} colours`):"");
+ const bad=Math.max(0,...L)*Math.max(1,...SZ.map(x=>x[2]))>mx*3,c=$("chk");c.className="msg "+(bad?"bad":"ok");c.textContent=bad?"Stop!!! Lay plies × ratio exceeds 3 × max qty per bundle":"Continue";
+ const w=[],seen={},sfx={},cc={};SZ.forEach(x=>{const k=x[0]+" "+x[1];seen[k]=(seen[k]||0)+1;(sfx[x[1]]=sfx[x[1]]||new Set()).add(x[0])});
+ Object.keys(seen).forEach(k=>seen[k]>1&&w.push(`Duplicate size label "${k}" appears ${seen[k]} times`));
+ Object.keys(sfx).forEach(k=>sfx[k].size>1&&w.push(`Suffix ${k} is used for different sizes`));
+ all.forEach(b=>{const k=code(b);cc[k]=(cc[k]||0)+1});if(Object.values(cc).some(v=>v>1))w.push("Duplicate barcodes found: use a unique Cutting No. for each colour set");
+ if(!L.length)w.push("Enter at least one lay (plies)");
+ $("warn").innerHTML=w.length?`<ul class="warnl">${w.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"";putWork()}
+// ---------- saved jobs ----------
+const getJobs=()=>{try{return JSON.parse(localStorage.getItem("bcJobs")||"{}")}catch(e){return{}}};
+const putJobs=j=>{try{localStorage.setItem("bcJobs",JSON.stringify(j))}catch(e){}};
+function drawJobs(){const j=Object.keys(getJobs());$("jobs").innerHTML=j.length?j.map(k=>`<option>${esc(k)}</option>`).join(""):"<option value=''>No saved jobs</option>"}
+$("jsave").onclick=()=>{const n=$("jname").value.trim()||[V.buyer,V.ral].join(" "),j=getJobs();j[n]=clone(snap());putJobs(j);drawJobs();$("jobs").value=n};
+$("jload").onclick=()=>{const j=getJobs()[$("jobs").value];if(!j)return;restore(clone(j));drawHead();drawSizes();drawSets();drawLay()};
+$("jdel").onclick=()=>{const j=getJobs();delete j[$("jobs").value];putJobs(j);drawJobs()};
+// ---------- lay & roll ----------
+const LST=["Planned","Spreading","Spread","Cut","Bundled"];
+function drawLay(){const s=S(),L=parseLays(s.lays);
+ $("laytbl").innerHTML="<tr><th>Lay</th><th>Roll no(s)</th><th>Issued (m)</th><th>Plan plies</th><th>Actual plies</th><th>Marker (m)</th><th>Used (m)</th><th>Balance (m)</th><th>Table</th><th>Status</th></tr>"+L.map((p,i)=>{const g=s.log[i]=s.log[i]||{};
+  return `<tr><td class="num">${i+1}</td><td><input data-l="${i}" data-g="roll" value="${esc(g.roll||"")}" placeholder="e.g. R1, R2"></td><td><input type="number" step="0.01" data-l="${i}" data-g="iss" value="${esc(g.iss||"")}"></td><td class="num">${p}</td><td><input type="number" data-l="${i}" data-g="act" value="${esc(g.act||"")}" placeholder="${p}"></td><td><input type="number" step="0.01" data-l="${i}" data-g="len" value="${esc(g.len||"")}"></td><td class="num" id="u${i}"></td><td class="num" id="bl${i}"></td><td><input data-l="${i}" data-g="tbl" value="${esc(g.tbl||"")}"></td><td><select data-l="${i}" data-g="st">${LST.map(x=>`<option ${x===(g.st||"Planned")?"selected":""}>${x}</option>`).join("")}</select></td></tr>`}).join("");layCalc()}
+function layCalc(){const s=S(),L=parseLays(s.lays);let pl=0,ac=0,us=0,is=0,cut=0;const rolls=new Set();
+ L.forEach((p,i)=>{const g=s.log[i]||{},a=g.act?+g.act:p,u=a*(+g.len||0),bal=(+g.iss||0)-u;pl+=p;ac+=a;us+=u;is+=+g.iss||0;if(g.st==="Cut"||g.st==="Bundled")cut++;
+  String(g.roll||"").split(/[,;\s]+/).filter(Boolean).forEach(r=>rolls.add(r.toUpperCase()));
+  $("u"+i).textContent=u?u.toFixed(2):"";const b=$("bl"+i);b.textContent=g.iss?bal.toFixed(2):"";b.className="num"+(g.iss&&bal<0?" neg":"")});
+ const v=ac-pl;$("laysum").innerHTML=tile(`${cut}/${L.length}`,"Lays cut")+tile(`${ac}/${pl}`,"Plies actual / plan")+tile((v>0?"+":"")+v,"Ply variance")+tile(rolls.size,"Rolls used")+tile(us.toFixed(1),"Fabric used (m)")+tile((is-us).toFixed(1),"Balance (m)")}
+$("laytbl").oninput=e=>{const d=e.target.dataset;if(d.g){S().log[d.l][d.g]=e.target.value;layCalc();putWork()}};
+// ---------- output ----------
+function parseRL(t){const o=new Set();t.split(",").forEach(p=>{const m=p.trim().match(/^(\d+)(?:\s*-\s*(\d+))?$/);if(m){const a=+m[1],b=+(m[2]||m[1]);for(let i=Math.min(a,b);i<=Math.max(a,b);i++)o.add(i)}});return o}
+let B=[];
+function gen(){B=buildAll();if(!B.length)return;
+ $("fc").innerHTML='<option value="">All colours</option>'+SETS.map((s,i)=>`<option value="${i}">${esc(s.colour)} · Cut ${esc(s.cut)}</option>`).join("");
+ $("fs").innerHTML='<option value="">All</option>'+[...new Set(B.map(b=>b.sz+" "+b.sf))].map(x=>`<option>${x}</option>`).join("");$("rl").value="";draw();show("out")}
+$("gen").onclick=gen;
+function pick(){const f=$("fs").value,c=$("fc").value,r=parseRL($("rl").value);return B.filter(b=>(!r.size||r.has(b.n))&&(!f||b.sz+" "+b.sf===f)&&(c===""||b.si===+c))}
+const head=()=>[V.buyer,V.ral,"Style "+V.style].map(esc).join(" · ");
+function sumHTML(list){const g={};list.forEach(b=>{const k=b.si+"|"+b.sz+" "+b.sf,o=g[k]=g[k]||{c:0,q:0,f:b.n,l:b.n,a:b.a,z:b.b,col:b.colour,cut:b.cut,sz:b.sz+" "+b.sf};o.c++;o.q+=b.q;o.l=b.n;o.a=Math.min(o.a,b.a);o.z=Math.max(o.z,b.b)});
+ return `<table class="sumt"><tr><th>Colour</th><th>Cut</th><th>Size</th><th>Bundle no.</th><th>Bundles</th><th>Serial</th><th>Pcs</th></tr>`+Object.values(g).map(o=>`<tr><td>${esc(o.col)}</td><td>${esc(o.cut)}</td><td class="num">${esc(o.sz)}</td><td>${o.f}–${o.l}</td><td>${o.c}</td><td>${o.a}–${o.z}</td><td class="num">${o.q}</td></tr>`).join("")+`<tr class="tot"><td>Total</td><td></td><td></td><td></td><td>${list.length}</td><td></td><td class="num">${list.reduce((a,b)=>a+b.q,0)}</td></tr></table>`}
+function draw(){const st=$("lo").value==="st",pp=st?1:(+$("pp").value||8),rj=$("rj").checked,list=pick(),cols=st?1:pp===12?3:2,nr=pp/cols;
+ $("pgs").textContent=st?"@media print{@page{size:100mm 60mm;margin:2mm}.pg{height:56mm!important;width:96mm;gap:0}.card{font-size:9.5px;padding:1.5mm 3mm}.card .n{font-size:20px}.card .sz{font-size:18px}.card svg.bc{height:26px}}":"";
+ $("sum").innerHTML=B.length?`<h2>Summary</h2><p class="sheet-info">${head()}</p>${sumHTML(list)}`:"";
+ $("info").textContent=`${list.length} card(s), ${Math.ceil(list.length/pp)} ${st?"label":"A4"} page(s)`;
+ let h="";if($("sp").checked&&!st&&list.length)h+=`<div class="box"><div class="pg sumpage"><h2>Cutting summary</h2><p>${head()}</p>${sumHTML(list)}</div></div>`;
+ const cd=b=>`<div class="codes"><svg class="bc" data-v="${esc(code(b))}"></svg>${rj?`<svg class="bc" data-v="${esc(rcode(b))}"></svg>`:""}</div>`;
+ for(let i=0;i<list.length;i+=pp){h+=`<div class="box"><div class="pg" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${nr},1fr)${st?";max-width:100mm":""}">`+list.slice(i,i+pp).map(b=>
+  `<div class="card"><div class="r h"><span>Buyer: ${esc(V.buyer)}</span><span>${esc(V.print)} · ${esc(V.unit)}</span></div>
+  <div class="r"><span>RAL: ${esc(V.ral)}</span><span>${esc(b.colour)}</span></div>
+  <div class="r"><span>T-${esc(V.style)}</span><span>Cutting No. ${esc(b.cut)}</span></div>
+  <div class="r" style="align-items:end"><span>Bundle No.<br><span class="n num">${b.n}</span></span><span class="sz num">${esc(b.sz)} ${b.sf}</span><span style="text-align:right">Qty<br><span class="n num">${b.q}</span></span></div>
+  <div class="r"><span>Serial: <b>${b.a} ~ ${b.b}</b></span><span>${esc(b.part)} · Batch ${esc(b.batch)}</span></div>${cd(b)}</div>`).join("")+`</div></div>`}
+ $("sheets").innerHTML=h||`<p>${B.length?"No cards match.":"Generate bundles from the Input tab first."}</p>`;
+ try{document.querySelectorAll("svg.bc").forEach(s=>JsBarcode(s,s.dataset.v,{format:"CODE128",height:28,width:1.2,fontSize:11,margin:0}))}catch(e){document.querySelectorAll("svg.bc").forEach(s=>s.outerHTML=`<div>${s.dataset.v}</div>`)}}
+["pp","fs","fc","rl","lo","sp","rj"].forEach(i=>$(i).onchange=draw);$("rl").oninput=draw;$("pr").onclick=()=>{draw();window.print()};
+function dl(name,arr){const t=arr.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\r\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+t],{type:"text/csv"}));a.download=name;a.click()}
+const rows=()=>[["Colour","Cutting No","Bundle No","Size","Suffix","Qty","Serial From","Serial To","Part","Batch","Barcode","Reject Barcode"],...pick().map(b=>[b.colour,b.cut,b.n,b.sz,b.sf,b.q,b.a,b.b,b.part,b.batch,code(b),rcode(b)])];
+$("csv").onclick=()=>dl("bundles-"+V.ral.replace(/[^\w-]+/g,"_")+".csv",rows());
+$("cp").onclick=async()=>{try{await navigator.clipboard.writeText(rows().map(r=>r.join("\t")).join("\n"));$("cp").textContent="Copied ✓";setTimeout(()=>$("cp").textContent="Copy list",1500)}catch(e){}};
+window.addEventListener("scroll",()=>{const h=document.querySelector("header"),y=window.scrollY;if(y>80)h.classList.add("mini");else if(y<20)h.classList.remove("mini")},{passive:true});
+drawLib();drawHead();drawSizes();drawSets();drawJobs();drawLay();
+</script></body></html>
